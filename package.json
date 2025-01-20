@@ -1,6 +1,6 @@
 {
   "name": "arkpets-chrome",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "private": true,
   "scripts": {
     "watch": "webpack build --watch --mode development",
