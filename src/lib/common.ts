@@ -8,6 +8,7 @@ export interface CharacterModel extends BasicCharacterModel {
 export interface CharacterItem {
   id: number;
   model: CharacterModel;
+  scale?: number; // 角色缩放比例
 }
 
 export function getEmbeddedModels(): CharacterModel[] {

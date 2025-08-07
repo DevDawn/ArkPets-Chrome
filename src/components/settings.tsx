@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from "./ui/button"
 import { Switch } from "./ui/switch"
+import { Slider } from "./ui/slider"
 import { Trash2, Plus, SquareArrowUpRightIcon, RefreshCcw, Loader2, ChevronDown, Check, ChevronsUpDown } from 'lucide-react'
 import { CharacterModel, CharacterItem, getEmbeddedModels, WebsiteFilterType } from '@/lib/common'
 import {
@@ -66,11 +67,15 @@ export default function Settings() {
 
   const onAddCharacter = async () => {
     const id = Date.now(); // Use timestamp (ms) as identifier
-    await setCharactersAndPersist([...characters, {id, model: availableModels[0]}]);
+    await setCharactersAndPersist([...characters, {id, model: availableModels[0], scale: 1}]);
   }
 
   const onUpdateCharacter = async (id: number, model: CharacterModel) => {
     await setCharactersAndPersist(characters.map((item) => item.id === id ? {id, model} : item));
+  }
+
+  const onUpdateCharacterScale = async (id: number, scale: number) => {
+    await setCharactersAndPersist(characters.map((item) => item.id === id ? {...item, scale} : item));
   }
   
   const onDeleteCharacter = async (id: number) => {
@@ -100,7 +105,7 @@ export default function Settings() {
     let characters = stored.characters;
     if (!characters) {
       // This is the first time the extension is loaded. Initialize with a default character.
-      characters = [{id: Date.now(), model: getEmbeddedModels()[0]}];
+      characters = [{id: Date.now(), model: getEmbeddedModels()[0], scale: 1}];
       await chrome.storage.local.set<{characters: CharacterItem[]}>({ characters });
     }
     setCharacters(characters);
@@ -202,55 +207,72 @@ export default function Settings() {
       <div className="flex flex-col space-y-6">
         <section id="section-characters">
           <h2 className="text-lg font-semibold mb-3">角色</h2>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {(characters || []).map((item) => (
-              <div key={item.id} className="flex items-center space-x-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className="flex-grow justify-between"
-                    >
-                      {item.model.name}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[250px] p-0 ml-4">
-                    <Command>
-                      <CommandInput placeholder="查找模型..." />
-                      <CommandList>
-                        <CommandEmpty>未找到角色模型</CommandEmpty>
-                        <CommandGroup>
-                          {availableModels.map((model) => (
-                            <CommandItem
-                              key={model.id}
-                              value={model.id + " " + model.name}
-                              onSelect={() => onUpdateCharacter(item.id, model)}
-                              className="flex items-center whitespace-nowrap overflow-x-auto"
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4 flex-shrink-0",
-                                  item.model.id === model.id ? "opacity-100" : "opacity-0"
+              <div key={item.id} className="border rounded-lg p-3 space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="flex-grow justify-between"
+                      >
+                        {item.model.name}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[250px] p-0 ml-4">
+                      <Command>
+                        <CommandInput placeholder="查找模型..." />
+                        <CommandList>
+                          <CommandEmpty>未找到角色模型</CommandEmpty>
+                          <CommandGroup>
+                            {availableModels.map((model) => (
+                              <CommandItem
+                                key={model.id}
+                                value={model.id + " " + model.name}
+                                onSelect={() => onUpdateCharacter(item.id, model)}
+                                className="flex items-center whitespace-nowrap overflow-x-auto"
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4 flex-shrink-0",
+                                    item.model.id === model.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <span className="truncate">{model.name}</span>
+                                {model.skinName && (
+                                  <Badge variant="secondary" className="ml-2 flex-shrink-0">
+                                    {model.skinName}
+                                  </Badge>
                                 )}
-                              />
-                              <span className="truncate">{model.name}</span>
-                              {model.skinName && (
-                                <Badge variant="secondary" className="ml-2 flex-shrink-0">
-                                  {model.skinName}
-                                </Badge>
-                              )}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <Button variant="outline" size="icon" onClick={() => onDeleteCharacter(item.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <Button variant="outline" size="icon" onClick={() => onDeleteCharacter(item.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {/* 缩放滑条 */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-gray-600">
+                    大小: {Math.round((item.scale || 1) * 100)}%
+                  </Label>
+                  <Slider
+                    value={[(item.scale || 1) * 100]}
+                    onValueChange={(value) => onUpdateCharacterScale(item.id, value[0] / 100)}
+                    min={50}
+                    max={200}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
               </div>
             ))}
             <Button onClick={onAddCharacter} className="w-full mt-2">

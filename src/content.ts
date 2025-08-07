@@ -80,8 +80,24 @@ function setCharacters(characters: CharacterItem[] = []) {
   updatedCharacters.forEach(character => {
     const index = activeCharacters.findIndex(c => c.id === character.id);
     if (index !== -1) {
-      activeCharacters[index].instance.loadCharacterModel(character.model);
-      console.log(`Character ${character.id} updated`);
+      const oldCharacter = activeCharacters[index];
+      const existingInstance = oldCharacter.instance;
+      
+      // Check if scale changed and update it directly
+      const currentScale = existingInstance.getScale();
+      const newScale = character.scale || 1;
+      
+      if (Math.abs(currentScale - newScale) > 0.01) {
+        // Just update the scale, don't recreate the character
+        existingInstance.setScale(newScale);
+        console.log(`Character ${character.id} scale updated to ${newScale}`);
+      }
+      
+      // Check if model changed and update it
+      if (existingInstance.getModel().id !== character.model.id) {
+        existingInstance.loadCharacterModel(character.model);
+        console.log(`Character ${character.id} model updated`);
+      }
     }
   })
 
@@ -95,6 +111,8 @@ function setCharacters(characters: CharacterItem[] = []) {
         });
       },
       character.model,
+      settings.allowInteraction !== false,
+      character.scale || 1
     );
     activeCharacters.push({
       id: character.id,
