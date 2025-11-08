@@ -1,0 +1,1 @@
+rm -rf node_modules/arkpets && rm package-lock.json && cd /home/dawn/projects/ArkPets-Chrome/ArkPets-Web/ &&npm run build&&cd ..&&npm install&&./build.sh

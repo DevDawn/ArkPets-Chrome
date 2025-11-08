@@ -42,6 +42,8 @@ export default function Settings() {
 
   const [websiteFilter, setWebsiteFilter] = useState<WebsiteFilterType>('all')
   const [domainList, setDomainList] = useState<string>('')
+  
+  const [needsRefresh, setNeedsRefresh] = useState<boolean>(false)
 
   const [isModelsFetching, setIsModelsFetching] = useState<boolean>(false);
 
@@ -76,6 +78,7 @@ export default function Settings() {
 
   const onUpdateCharacterScale = async (id: number, scale: number) => {
     await setCharactersAndPersist(characters.map((item) => item.id === id ? {...item, scale} : item));
+    setNeedsRefresh(true);
   }
   
   const onDeleteCharacter = async (id: number) => {
@@ -261,7 +264,7 @@ export default function Settings() {
                 
                 {/* 缩放滑条 */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-600">
+                  <Label className="text-sm font-medium text-gray-700">
                     大小: {Math.round((item.scale || 1) * 100)}%
                   </Label>
                   <Slider
@@ -272,6 +275,12 @@ export default function Settings() {
                     step={5}
                     className="w-full"
                   />
+                  {needsRefresh && (
+                    <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                      <RefreshCcw className="h-3 w-3" />
+                      缩放更改需要刷新页面才能生效
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -373,6 +382,34 @@ example.com (匹配 example.com 和 www.example.com)"
         </section>      
       </div>
       <div className="mt-2">
+        {needsRefresh && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-amber-800">
+                <RefreshCcw className="h-4 w-4" />
+                <span className="text-sm font-medium">需要刷新页面</span>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={async () => {
+                  // 刷新当前活跃的标签页
+                  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                  if (tab.id) {
+                    await chrome.tabs.reload(tab.id);
+                    // 关闭扩展弹窗
+                    window.close();
+                  }
+                }}
+                className="bg-amber-600 hover:bg-amber-700"
+              >
+                刷新页面
+              </Button>
+            </div>
+            <p className="text-xs text-amber-700 mt-1">
+              角色大小更改需要刷新当前页面才能生效
+            </p>
+          </div>
+        )}
         <Button 
           variant="destructive" 
           className="mt-2 w-full" 
@@ -380,18 +417,8 @@ example.com (匹配 example.com 和 www.example.com)"
         >
           初始化设置
         </Button>
-        <div className="mt-2 pb-2">
-          <a 
-            href="https://github.com/fuyufjh/ArkPets-Chrome/issues" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            问题反馈
-            <SquareArrowUpRightIcon className="ml-1 w-4 h-4" />
-          </a>
-        </div>
       </div>
+      <div className="h-4"></div>
     </div>
   )
 }
