@@ -83,16 +83,6 @@ function setCharacters(characters: CharacterItem[] = []) {
       const oldCharacter = activeCharacters[index];
       const existingInstance = oldCharacter.instance;
       
-      // Check if scale changed and update it directly
-      const currentScale = existingInstance.getScale();
-      const newScale = character.scale || 1;
-      
-      if (Math.abs(currentScale - newScale) > 0.01) {
-        // Just update the scale, don't recreate the character
-        existingInstance.setScale(newScale);
-        console.log(`Character ${character.id} scale updated to ${newScale}`);
-      }
-      
       // Check if model changed and update it
       if (existingInstance.getModel().id !== character.model.id) {
         existingInstance.loadCharacterModel(character.model);
@@ -111,8 +101,7 @@ function setCharacters(characters: CharacterItem[] = []) {
         });
       },
       character.model,
-      settings.allowInteraction !== false,
-      character.scale || 1
+      settings.allowInteraction !== false
     );
     activeCharacters.push({
       id: character.id,

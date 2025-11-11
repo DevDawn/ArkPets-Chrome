@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button } from "./ui/button"
 import { Switch } from "./ui/switch"
 import { Slider } from "./ui/slider"
-import { Trash2, Plus, SquareArrowUpRightIcon, RefreshCcw, Loader2, ChevronDown, Check, ChevronsUpDown } from 'lucide-react'
+import { Trash2, Plus, RefreshCcw, Loader2, ChevronDown, Check, ChevronsUpDown } from 'lucide-react'
 import { CharacterModel, CharacterItem, getEmbeddedModels, WebsiteFilterType } from '@/lib/common'
 import {
   Command,
